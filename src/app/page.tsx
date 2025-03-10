@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, SparklesIcon, MicrophoneIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
 
 // Suggested questions for kids to ask
@@ -55,6 +55,9 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [fontSize, setFontSize] = useState('normal'); // 'normal', 'large', 'x-large'
 
   // Initialize confetti on mount
   useEffect(() => {
@@ -97,6 +100,9 @@ export default function Home() {
           content: [{ type: 'text', text: data.choices[0].message.content }]
         };
         setMessages(prev => [...prev, assistantMessage]);
+        
+        // Automatically read the response aloud
+        speakText(data.choices[0].message.content);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -128,18 +134,110 @@ export default function Home() {
     setShowConfetti(true);
   };
 
+  const startVoiceRecognition = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('你的浏览器不支持语音识别功能，请尝试使用Chrome或Edge浏览器。');
+      return;
+    }
+
+    setIsListening(true);
+    
+    // Use a simpler type assertion approach
+    const SpeechRecognitionAPI: any = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  // Function to speak text aloud
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) {
+      alert('你的浏览器不支持语音合成功能，请尝试使用Chrome或Edge浏览器。');
+      return;
+    }
+    
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Create new speech synthesis utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.9; // Slightly slower rate for children
+    utterance.pitch = 1.1; // Slightly higher pitch for friendlier tone
+    
+    // Get Chinese voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const chineseVoice = voices.find(voice => 
+      voice.lang.includes('zh') || voice.lang.includes('cmn'));
+    if (chineseVoice) {
+      utterance.voice = chineseVoice;
+    }
+    
+    // Speech events
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    // Start speaking
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
+
+  // Function to stop speaking
+  const stopSpeaking = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Function to toggle font size
+  const toggleFontSize = () => {
+    if (fontSize === 'normal') setFontSize('large');
+    else if (fontSize === 'large') setFontSize('x-large');
+    else setFontSize('normal');
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center p-4 bg-gradient-to-b from-blue-100 to-purple-100">
       {showConfetti && <Confetti />}
       
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-yellow-400 animate-breathing">
         <div className="p-6">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-4xl animate-floating">🤖</span>
-            <h1 className="text-3xl font-bold text-center rainbow-text">
-              奇奇博士的科学乐园
-            </h1>
-            <span className="text-4xl animate-pulse">✨</span>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-4xl animate-floating">🤖</span>
+              <h1 className="text-3xl font-bold text-center rainbow-text">
+                奇奇博士的科学乐园
+              </h1>
+              <span className="text-4xl animate-pulse">✨</span>
+            </div>
+            <button 
+              onClick={toggleFontSize}
+              className="bg-yellow-200 hover:bg-yellow-300 p-2 rounded-full transition-all duration-200"
+              title="调整字体大小"
+            >
+              <span className="text-xl">
+                {fontSize === 'normal' ? 'A' : fontSize === 'large' ? 'A+' : 'A++'}
+              </span>
+            </button>
           </div>
           
           <div className="space-y-4 mb-4 h-[50vh] overflow-y-auto p-4 rounded-2xl bg-gray-50 shadow-inner custom-scrollbar">
@@ -165,15 +263,35 @@ export default function Home() {
                     : 'bg-white mr-auto max-w-[80%] shadow-md border-2 border-purple-200'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">
-                    {message.role === 'user' ? '👧' : '🤖'}
-                  </span>
-                  <span className="font-medium">
-                    {message.role === 'user' ? '你' : '奇奇博士'}
-                  </span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">
+                      {message.role === 'user' ? '👧' : '🤖'}
+                    </span>
+                    <span className="font-medium">
+                      {message.role === 'user' ? '你' : '奇奇博士'}
+                    </span>
+                  </div>
+                  
+                  {message.role === 'assistant' && (
+                    <button
+                      onClick={isSpeaking ? stopSpeaking : () => speakText(message.content[0].text)}
+                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                      title={isSpeaking ? "停止朗读" : "朗读回答"}
+                    >
+                      {isSpeaking ? (
+                        <SpeakerXMarkIcon className="h-5 w-5 text-red-500" />
+                      ) : (
+                        <SpeakerWaveIcon className="h-5 w-5 text-green-500" />
+                      )}
+                    </button>
+                  )}
                 </div>
-                <div className="text-gray-700 leading-relaxed">
+                
+                <div className={`text-gray-700 leading-relaxed ${
+                  fontSize === 'large' ? 'text-xl' : 
+                  fontSize === 'x-large' ? 'text-2xl' : 'text-base'
+                }`}>
                   {formatMessage(message.content[0])}
                 </div>
               </div>
@@ -206,14 +324,26 @@ export default function Home() {
           )}
 
           <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="在这里输入你的问题..."
-              className="flex-1 p-4 border-2 border-purple-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 text-lg"
-              disabled={isLoading}
-            />
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="在这里输入你的问题..."
+                className="w-full p-4 border-2 border-purple-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 text-lg"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={startVoiceRecognition}
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
+                  isListening ? 'bg-red-500 animate-pulse' : 'bg-gray-200 hover:bg-gray-300'
+                }`}
+                disabled={isLoading}
+              >
+                <MicrophoneIcon className="h-5 w-5 text-gray-700" />
+              </button>
+            </div>
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
