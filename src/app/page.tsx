@@ -50,8 +50,50 @@ const Confetti = dynamic(() => Promise.resolve(() => {
   );
 }), { ssr: false });
 
+// Define interfaces for message content
+interface TextContent {
+  type: 'text';
+  text: string;
+}
+
+interface MessageContent {
+  role: 'user' | 'assistant';
+  content: TextContent[];
+}
+
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      }
+    }
+  }
+}
+
+interface SpeechRecognition {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: () => void;
+  onend: () => void;
+  start: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new(): SpeechRecognition;
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    SpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 export default function Home() {
-  const [messages, setMessages] = useState<Array<{ role: string; content: any[] }>>([]);
+  const [messages, setMessages] = useState<MessageContent[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -72,7 +114,7 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = {
+    const userMessage: MessageContent = {
       role: 'user',
       content: [{ type: 'text', text: input }]
     };
@@ -95,7 +137,7 @@ export default function Home() {
       const data = await response.json();
       
       if (data.choices?.[0]?.message) {
-        const assistantMessage = {
+        const assistantMessage: MessageContent = {
           role: 'assistant',
           content: [{ type: 'text', text: data.choices[0].message.content }]
         };
@@ -115,7 +157,7 @@ export default function Home() {
     setInput(question);
   };
 
-  const formatMessage = (text: any) => {
+  const formatMessage = (text: string | TextContent) => {
     if (typeof text !== 'string') {
       // If text is not a string, try to get it from the content structure
       if (typeof text?.text === 'string') {
@@ -135,6 +177,8 @@ export default function Home() {
   };
 
   const startVoiceRecognition = () => {
+    if (typeof window === 'undefined') return; // Guard against SSR
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert('你的浏览器不支持语音识别功能，请尝试使用Chrome或Edge浏览器。');
       return;
@@ -142,14 +186,13 @@ export default function Home() {
 
     setIsListening(true);
     
-    // Use a simpler type assertion approach
-    const SpeechRecognitionAPI: any = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const SpeechRecognitionAPI = ((window.webkitSpeechRecognition || window.SpeechRecognition) as SpeechRecognitionConstructor);
     const recognition = new SpeechRecognitionAPI();
     recognition.lang = 'zh-CN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       setIsListening(false);
