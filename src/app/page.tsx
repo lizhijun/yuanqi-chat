@@ -802,6 +802,7 @@ export default function Home() {
 
       <footer className="mt-6 text-center text-sm text-gray-600 bg-white p-2 rounded-lg shadow-md">
         <p>奇奇博士 - 儿童友好的AI助手 🚀</p>
+        <p>Powered by 腾讯混元大模型 + 腾讯元器</p>
       </footer>
 
       <style jsx global>{`
