@@ -45,7 +45,7 @@
 
 /* Custom scrollbar for the chat area */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -77,4 +77,214 @@
 
 .animate-floating {
   animation: floating 3s ease-in-out infinite;
+}
+
+/* Fun wiggle animation */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.animate-wiggle:hover {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+/* Colorful border animation */
+@keyframes border-dance {
+  0% { border-color: #ff6b6b; }
+  25% { border-color: #feca57; }
+  50% { border-color: #1dd1a1; }
+  75% { border-color: #5f27cd; }
+  100% { border-color: #ff6b6b; }
+}
+
+.animate-border {
+  animation: border-dance 4s linear infinite;
+}
+
+/* Bounce in animation for newly added elements */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.7s ease-out;
+}
+
+/* Star twinkle animation */
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-twinkle {
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+/* Rainbow border for special elements */
+.rainbow-border {
+  position: relative;
+  z-index: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rainbow-border::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background-repeat: no-repeat;
+  background-size: 50% 50%, 50% 50%;
+  background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+  background-image: linear-gradient(#ff6b6b, #ff6b6b), 
+                    linear-gradient(#feca57, #feca57), 
+                    linear-gradient(#1dd1a1, #1dd1a1), 
+                    linear-gradient(#5f27cd, #5f27cd);
+  animation: rotate 4s linear infinite;
+}
+
+.rainbow-border::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 6px;
+  top: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  background: white;
+  border-radius: 8px;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(1turn); }
+}
+
+/* Jelly button effect */
+@keyframes jelly {
+  0%, 100% { transform: scale(1, 1); }
+  25% { transform: scale(0.95, 1.05); }
+  50% { transform: scale(1.05, 0.95); }
+  75% { transform: scale(0.95, 1.05); }
+}
+
+.animate-jelly:active {
+  animation: jelly 0.5s;
+}
+
+/* Pop-up animation */
+@keyframes pop-up {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-pop-up {
+  animation: pop-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Celebration animation for achievements */
+@keyframes celebrate {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.2); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.animate-celebrate {
+  animation: celebrate 1s ease-in-out;
+}
+
+/* Shake animation for alerts or attention */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Paper fold effect for cards */
+.paper-fold {
+  position: relative;
+  background: white;
+  box-shadow: 
+    0 1px 1px rgba(0,0,0,0.15),
+    0 10px 0 -5px #eee,
+    0 10px 1px -4px rgba(0,0,0,0.15),
+    0 20px 0 -10px #eee,
+    0 20px 1px -9px rgba(0,0,0,0.15);
+}
+
+/* Dotted background pattern */
+.bg-dotted {
+  background-image: radial-gradient(#5f27cd 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Striped background pattern */
+.bg-striped {
+  background: repeating-linear-gradient(
+    45deg,
+    #f9fafb,
+    #f9fafb 10px,
+    #eff6ff 10px,
+    #eff6ff 20px
+  );
+}
+
+/* Wavy text underline */
+.wavy-underline {
+  text-decoration: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 4'%3E%3Cpath fill='none' stroke='%235f27cd' stroke-width='2' d='M0,3.5 c 5,0,5,-3,10,-3 s 5,3,10,3 c 5,0,5,-3,10,-3 s 5,3,10,3'/%3E%3C/svg%3E");
+  background-position: bottom;
+  background-size: 20px 4px;
+  background-repeat: repeat-x;
+  padding-bottom: 4px;
+}
+
+/* Comic book style speech bubble */
+.speech-bubble {
+  position: relative;
+  background: #ffffff;
+  border-radius: 1em;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.speech-bubble:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  width: 0;
+  height: 0;
+  border: 20px solid transparent;
+  border-top-color: #ffffff;
+  border-bottom: 0;
+  margin-left: -10px;
+  margin-bottom: -20px;
+}
+
+/* Galaxy background for space theme */
+.bg-galaxy {
+  background-color: #0b0b19;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+  background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+  background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
 } 
